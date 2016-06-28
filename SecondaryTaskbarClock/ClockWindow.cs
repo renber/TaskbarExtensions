@@ -2,6 +2,7 @@
 using SecondaryTaskbarClock.Renderers;
 using SecondaryTaskbarClock.Utils;
 using SecondaryTaskbarClock.ViewModels;
+using SecondaryTaskbarClock.Views;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -14,28 +15,13 @@ using System.Windows.Forms;
 
 namespace SecondaryTaskbarClock
 {
-    public class ClockWindow : Form
+    public class ClockWindow : TaskbarWindow
     {
-        TaskbarInfo Taskbar { get; set; }
-        IWindowContentRenderer ContentRenderer { get; set; }
-
-        Size TargetSize = new Size(80, 40);
-
-        bool isMouseOver = false;
-        bool isMouseDown = false;
-
-        public ClockWindow(TaskbarInfo targetTaskbar, ClockViewModel viewModel)            
-        {            
-            Taskbar = targetTaskbar;
+                
+        public ClockWindow(TaskbarInfo targetTaskbar, ClockViewModel viewModel)
             // currently we always use the Windows 10 renderer
-            ContentRenderer = new Win10TaskbarClockRenderer(viewModel);
-
-            FormBorderStyle = FormBorderStyle.None;
-
-            // since the window is a child of the taskbar, its
-            //background becomes transparent automatically             
-            BackColor = Color.Black;
-
+            : base(targetTaskbar, new Win10TaskbarClockRenderer(viewModel))
+        {                                   
             // redraw the window, when the current time changes
             viewModel.PropertyChanged += (s, e) => Invalidate();
 
@@ -57,111 +43,41 @@ namespace SecondaryTaskbarClock
 
                if (flyoutHwnd != IntPtr.Zero)
                {
-                   // give the flyout window some time to initialize completely
+                   // give the flyout some time to initialize
                    Thread.Sleep(150);
-                   
+
+                   // and move it to this clock's location                   
                    NativeImports.RECT flyoutRect;
-                   while (!NativeImports.GetWindowRect(flyoutHwnd, out flyoutRect))
-                   {
-                       // --
+                   if (NativeImports.GetWindowRect(flyoutHwnd, out flyoutRect))
+                   {                       
+                       int flyoutWidth = flyoutRect.Right - flyoutRect.Left;
+                       int flyoutHeight = flyoutRect.Bottom - flyoutRect.Top;
+
+                       switch (Taskbar.DockPosition)
+                       {
+                           case TaskbarDockPosition.Top:
+                               // place the calendar flyout below the clock
+                               NativeImports.SetWindowPos(flyoutHwnd, IntPtr.Zero, Bounds.Right - flyoutWidth, Bounds.Bottom, 0, 0, NativeImports.SetWindowPosFlags.SWP_NOSIZE);
+                               break;
+
+                           case TaskbarDockPosition.Bottom:
+                               // place the calendar flyout above the clock
+                               NativeImports.SetWindowPos(flyoutHwnd, IntPtr.Zero, Bounds.Right - flyoutWidth, Bounds.Top - flyoutHeight, 0, 0, NativeImports.SetWindowPosFlags.SWP_NOSIZE);
+                               break;
+
+                           case TaskbarDockPosition.Left:
+                               // place the calendar flyout to the right of the clock
+                               NativeImports.SetWindowPos(flyoutHwnd, IntPtr.Zero, Bounds.Right, Bounds.Bottom - flyoutHeight, 0, 0, NativeImports.SetWindowPosFlags.SWP_NOSIZE);
+                               break;
+
+                           case TaskbarDockPosition.Right:
+                               // place the calendar flyout to the left of the clock
+                               NativeImports.SetWindowPos(flyoutHwnd, IntPtr.Zero, Bounds.Left - flyoutWidth, Bounds.Bottom - flyoutHeight, 0, 0, NativeImports.SetWindowPosFlags.SWP_NOSIZE);
+                               break;
+                       }                       
                    }
-                   // and move it to this clock's location
-                   // only works, when the taskbar is at the bottom of the screen atm               
-
-                   Point topRight = new Point(Bounds.Right, Bounds.Top);
-
-                   int flyoutWidth = flyoutRect.Right - flyoutRect.Left;
-                   int flyoutHeight = flyoutRect.Bottom - flyoutRect.Top;
-                   NativeImports.SetWindowPos(flyoutHwnd, IntPtr.Zero, topRight.X - flyoutWidth, topRight.Y - flyoutHeight, 0, 0, NativeImports.SetWindowPosFlags.SWP_NOSIZE);
                }
            });
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            base.OnPaint(e);            
-            ContentRenderer.Render(e.Graphics, new RendererParameters(Width, Height, isMouseOver, isMouseDown));
-        }
-
-        protected override void OnLoad(EventArgs e)
-        {
-            base.OnLoad(e);
-
-            var taskbarRect = WindowUtils.GetWindowBounds(Taskbar.Handle);
-
-            // Set this window as child of the secondary taskbar's button bar            
-            var btnsHwnd = TaskbarUtils.GetSecondaryTaskButtonsHwnd(Taskbar.Handle);
-            NativeImports.SetWindowLong(Handle, NativeImports.GWL_STYLE, NativeImports.GetWindowLong(Handle, NativeImports.GWL_STYLE) | NativeImports.WS_CHILD);
-            NativeImports.SetParent(Handle, btnsHwnd);
-            
-            // get the size of the button bar to place the clock
-            var taskBtnRect = WindowUtils.GetWindowBounds(btnsHwnd);
-
-            switch (Taskbar.DockPosition)
-            {
-                case TaskbarDockPosition.Top:
-                case TaskbarDockPosition.Bottom:
-                    TargetSize = new Size(TargetSize.Width, taskbarRect.Height);
-
-                    // place the clock at the far right                       
-                    // we use SetWindowPos since setting Left and Top does not seem to work correctly
-                    NativeImports.SetWindowPos(Handle, IntPtr.Zero, taskBtnRect.Width - TargetSize.Width, 0, 0, 0, NativeImports.SetWindowPosFlags.SWP_NOSIZE);
-                    break;
-
-                case TaskbarDockPosition.Left:
-                case TaskbarDockPosition.Right:
-                    TargetSize = new Size(taskbarRect.Width, TargetSize.Height);
-
-                    // place the clock at the bottom                                        
-                    // we use SetWindowPos since setting Left and Top does not seem to work correctly
-                    NativeImports.SetWindowPos(Handle, IntPtr.Zero, 0, taskBtnRect.Height - TargetSize.Height, 0, 0, NativeImports.SetWindowPosFlags.SWP_NOSIZE);
-                    break;
-            }
-        }
-
-        protected override void OnShown(EventArgs e)
-        {
-            base.OnShown(e);
-
-            // resize the window to fit the taskbar            
-            var taskbarRect = WindowUtils.GetWindowBounds(Taskbar.Handle);
-            
-            Width = TargetSize.Width;
-            Height = TargetSize.Height;                                
-
-            this.Invalidate(); 
-        }
-
-        protected override void OnMouseEnter(EventArgs e)
-        {
-            base.OnMouseEnter(e);
-
-            isMouseOver = true;
-            this.Refresh();            
-        }
-
-        protected override void OnMouseLeave(EventArgs e)
-        {
-            base.OnMouseLeave(e);
-
-            isMouseOver = false;
-            this.Refresh();
-        }
-
-        protected override void OnMouseDown(MouseEventArgs e)
-        {
-            base.OnMouseDown(e);
-
-            isMouseDown = true;
-            this.Refresh();
-        }
-
-        protected override void OnMouseUp(MouseEventArgs e)
-        {
-            base.OnMouseUp(e);
-
-            isMouseDown = false;
-            this.Refresh();
-        }
+        }        
     }
 }

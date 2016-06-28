@@ -61,6 +61,9 @@
     <Compile Include="Utils\WindowUtils.cs" />
     <Compile Include="ViewModels\ClockViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
+    <Compile Include="Views\TaskbarWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <EmbeddedResource Include="ClockWindow.resx">
       <DependentUpon>ClockWindow.cs</DependentUpon>
     </EmbeddedResource>
