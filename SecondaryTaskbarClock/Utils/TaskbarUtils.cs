@@ -143,7 +143,7 @@ namespace SecondaryTaskbarClock.Utils
         /// <summary>
         /// Invoke the primary taskbar's calendar flyout
         /// </summary>        
-        public static bool InvokeCalendarFlyOut()
+        private static bool InvokeCalendarFlyOut()
         {
             // in order to show the calendar flyout
             // we simulate a click on the primary taskbars clock
@@ -172,6 +172,59 @@ namespace SecondaryTaskbarClock.Utils
 
             return true;
         }
+
+        /// <summary>
+        /// Show the primary taskbar's calendar flyout at the given location with the given alignment
+        /// </summary>    
+        public static void ShowCalendarFlyOut(Rectangle alignTo, FlyoutAlignment alignment)
+        {
+            // invoke the primary taskbar's calendar flyout
+            if (TaskbarUtils.InvokeCalendarFlyOut())
+            {
+                // wait for it to open (max. 2 seconds)
+                IntPtr flyoutHwnd = IntPtr.Zero;
+                int start = Environment.TickCount;
+                while (flyoutHwnd == IntPtr.Zero && (Environment.TickCount - start <= 2000))
+                    flyoutHwnd = TaskbarUtils.GetCalendarFlyoutHwnd();
+
+                if (flyoutHwnd != IntPtr.Zero)
+                {
+                    // give the flyout some time to initialize
+                    Thread.Sleep(150);
+
+                    // and move it to this clock's location                   
+                    NativeImports.RECT flyoutRect;
+                    if (NativeImports.GetWindowRect(flyoutHwnd, out flyoutRect))
+                    {
+                        int flyoutWidth = flyoutRect.Right - flyoutRect.Left;
+                        int flyoutHeight = flyoutRect.Bottom - flyoutRect.Top;
+
+                        switch (alignment)
+                        {
+                            case FlyoutAlignment.Below:
+                                // place the calendar flyout below the clock
+                                NativeImports.SetWindowPos(flyoutHwnd, IntPtr.Zero, alignTo.Right - flyoutWidth, alignTo.Bottom, 0, 0, NativeImports.SetWindowPosFlags.SWP_NOSIZE);
+                                break;
+
+                            case FlyoutAlignment.Above:
+                                // place the calendar flyout above the clock
+                                NativeImports.SetWindowPos(flyoutHwnd, IntPtr.Zero, alignTo.Right - flyoutWidth, alignTo.Top - flyoutHeight, 0, 0, NativeImports.SetWindowPosFlags.SWP_NOSIZE);
+                                break;
+
+                            case FlyoutAlignment.ToTheRight:
+                                // place the calendar flyout to the right of the clock
+                                NativeImports.SetWindowPos(flyoutHwnd, IntPtr.Zero, alignTo.Right, alignTo.Bottom - flyoutHeight, 0, 0, NativeImports.SetWindowPosFlags.SWP_NOSIZE);
+                                break;
+
+                            case FlyoutAlignment.ToTheLeft:
+                                // place the calendar flyout to the left of the clock
+                                NativeImports.SetWindowPos(flyoutHwnd, IntPtr.Zero, alignTo.Left - flyoutWidth, alignTo.Bottom - flyoutHeight, 0, 0, NativeImports.SetWindowPosFlags.SWP_NOSIZE);
+                                break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public class TaskbarInfo
@@ -199,5 +252,17 @@ namespace SecondaryTaskbarClock.Utils
         Top,
         Left,
         Right
+    }
+
+    /// <summary>
+    /// Alignment of the calendar flyout
+    /// (Ordinals match the corresponding TaskbarDockPosition)
+    /// </summary>
+    public enum FlyoutAlignment
+    {
+        Above = 0,
+        Below,
+        ToTheRight,
+        ToTheLeft
     }
 }

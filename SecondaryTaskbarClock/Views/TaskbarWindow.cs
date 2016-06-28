@@ -118,16 +118,22 @@ namespace SecondaryTaskbarClock.Views
         {
             base.OnMouseDown(e);
 
-            isMouseDown = true;
-            this.Refresh();
+            if (e.Button == MouseButtons.Left)
+            {
+                isMouseDown = true;
+                this.Refresh();
+            }
         }
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
             base.OnMouseUp(e);
 
-            isMouseDown = false;
-            this.Refresh();
+            if (e.Button == MouseButtons.Left)
+            {
+                isMouseDown = false;
+                this.Refresh();
+            }
         }
     }
 }
