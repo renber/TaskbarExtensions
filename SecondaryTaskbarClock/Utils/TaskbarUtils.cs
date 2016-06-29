@@ -15,6 +15,7 @@ namespace SecondaryTaskbarClock.Utils
     {
         const string PrimaryTaskbarClassName = "shell_traywnd";
         const string PrimaryTaskbarTrayClassName = "traynotifywnd";
+        const string PrimaryButtonBarClassName = "rebarwindow32";
 
         const string SecondaryTaskbarClassName = "shell_secondarytraywnd";
         const string SecondaryButtonBarParentClassName = "workerw";
@@ -23,19 +24,19 @@ namespace SecondaryTaskbarClock.Utils
         /// <summary>
         /// Return all visible taskbars
         /// </summary>        
-        public static IList<TaskbarInfo> ListTaskbars()
+        public static IList<TaskbarRef> ListTaskbars()
         {
-            List<TaskbarInfo> taskbars = new List<TaskbarInfo>();
+            List<TaskbarRef> taskbars = new List<TaskbarRef>();
 
             // get the primary taskbar
             var primaryHwnd = GetPrimaryTaskbarHwnd();
-            taskbars.Add(new TaskbarInfo(true, primaryHwnd, WindowUtils.GetWindowBounds(primaryHwnd), GetTaskbarDockPosition(primaryHwnd)));
+            taskbars.Add(new TaskbarRef(true, primaryHwnd, WindowUtils.GetWindowBounds(primaryHwnd), GetTaskbarDockPosition(primaryHwnd)));
 
             // find all secondary taskbars
             IntPtr secondaryHwnd = NativeImports.FindWindowEx(IntPtr.Zero, IntPtr.Zero, SecondaryTaskbarClassName, null);
             while (secondaryHwnd != IntPtr.Zero)
             {
-                taskbars.Add(new TaskbarInfo(false, secondaryHwnd, WindowUtils.GetWindowBounds(secondaryHwnd), GetTaskbarDockPosition(secondaryHwnd)));
+                taskbars.Add(new TaskbarRef(false, secondaryHwnd, WindowUtils.GetWindowBounds(secondaryHwnd), GetTaskbarDockPosition(secondaryHwnd)));
 
                 // get the next secondary taskbar (if any)
                 secondaryHwnd = NativeImports.FindWindowEx(IntPtr.Zero, secondaryHwnd, SecondaryTaskbarClassName, null);
@@ -61,7 +62,7 @@ namespace SecondaryTaskbarClock.Utils
         /// </summary>
         /// <param name="taskbarHwnd"></param>
         /// <returns></returns>
-        private static TaskbarDockPosition GetTaskbarDockPosition(IntPtr taskbarHwnd)
+        internal static TaskbarDockPosition GetTaskbarDockPosition(IntPtr taskbarHwnd)
         {
             Screen screen = FindTaskbarScreen(taskbarHwnd);
             var taskbarRect = WindowUtils.GetWindowBounds(taskbarHwnd);
@@ -92,7 +93,17 @@ namespace SecondaryTaskbarClock.Utils
         public static IntPtr GetPrimaryTaskbarHwnd()
         {
             return NativeImports.FindWindowEx(IntPtr.Zero, IntPtr.Zero, PrimaryTaskbarClassName, null);
-        }        
+        }
+
+        /// <summary>
+        /// Return the handle of the button bar of the primary taskbar with the given handle
+        /// </summary>
+        /// <param name="taskbarHwnd"></param>
+        /// <returns></returns>
+        public static IntPtr GetPrimaryTaskButtonsHwnd(IntPtr taskbarHwnd)
+        {            
+            return NativeImports.FindWindowEx(taskbarHwnd, IntPtr.Zero, PrimaryButtonBarClassName, null);
+        }
 
         /// <summary>
         /// Return the handle of the button bar of the secondary taskbar with the given handle
@@ -177,7 +188,7 @@ namespace SecondaryTaskbarClock.Utils
         /// Show the primary taskbar's calendar flyout at the given location with the given alignment
         /// </summary>    
         public static void ShowCalendarFlyOut(Rectangle alignTo, FlyoutAlignment alignment)
-        {
+        {           
             // invoke the primary taskbar's calendar flyout
             if (TaskbarUtils.InvokeCalendarFlyOut())
             {
@@ -227,19 +238,50 @@ namespace SecondaryTaskbarClock.Utils
         }
     }
 
-    public class TaskbarInfo
+    public class TaskbarRef
     {
         public bool IsPrimary { get; private set; }
         public TaskbarDockPosition DockPosition { get; private set; }
         public IntPtr Handle { get; private set; }
-        public Rectangle Bounds { get; private set; }   
+        public Rectangle Bounds { get; private set; }
+
+        /// <summary>
+        /// Raised when the position or the size of this taskbar has changed
+        /// </summary>
+        public event EventHandler PositionOrSizeChanged;
         
-        public TaskbarInfo(bool isPrimary, IntPtr hwnd, Rectangle bounds, TaskbarDockPosition dockPosition)
+        public TaskbarRef(bool isPrimary, IntPtr hwnd, Rectangle bounds, TaskbarDockPosition dockPosition)
         {
             IsPrimary = isPrimary;
             Handle = hwnd;
             Bounds = bounds;
             DockPosition = dockPosition;
+        }
+
+        /// <summary>
+        /// Raises the PositionOrSizeChanged event
+        /// 
+        /// </summary>
+        protected void RaisePositionOrSizeChanged()
+        {            
+            PositionOrSizeChanged?.Invoke(this, EventArgs.Empty);            
+        }
+
+        /// <summary>
+        /// Reevaluates the DockPosition and Bounds
+        /// and raises the PositionOrSizeChanged event if necessary
+        /// </summary>
+        public void Update()
+        {
+            var oldDockPosition = DockPosition;
+            var oldBounds = Bounds;
+
+            DockPosition = TaskbarUtils.GetTaskbarDockPosition(Handle);
+            Bounds = WindowUtils.GetWindowBounds(Handle);
+
+            if (oldDockPosition != DockPosition ||
+                oldBounds != Bounds)
+                RaisePositionOrSizeChanged();
         }
     }
 

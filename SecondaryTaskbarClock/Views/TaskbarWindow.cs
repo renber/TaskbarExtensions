@@ -3,6 +3,8 @@ using SecondaryTaskbarClock.Renderers;
 using SecondaryTaskbarClock.Utils;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -23,18 +25,28 @@ namespace SecondaryTaskbarClock.Views
     /// </summary>
     public class TaskbarWindow : Form
     {
-        protected TaskbarInfo Taskbar { get; private set; }
+        protected TaskbarRef Taskbar { get; private set; }
         protected IWindowContentRenderer ContentRenderer { get; private set; }
 
         Size TargetSize = new Size(80, 40);
+        Size ActualSize = new Size();
+
         bool isMouseOver = false;        
         bool isMouseDown = false;
+
+        /// <summary>
+        /// Constructor for the Visual Studio Designer
+        /// </summary>
+        public TaskbarWindow()
+        {
+            // --
+        }
 
         /// <summary>
         /// Creates a new taskbar window and adds it to the given taskbar
         /// </summary>
         /// <param name="targetTaskbar">The taskbar to add this window to</param>
-        public TaskbarWindow(TaskbarInfo targetTaskbar, IWindowContentRenderer contentRenderer)
+        public TaskbarWindow(TaskbarRef targetTaskbar, IWindowContentRenderer contentRenderer)
         {
             if (targetTaskbar == null)
                 throw new ArgumentNullException("targetTaskbar");
@@ -44,28 +56,53 @@ namespace SecondaryTaskbarClock.Views
             Taskbar = targetTaskbar;
             ContentRenderer = contentRenderer;
 
-            SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
-
             FormBorderStyle = FormBorderStyle.None;
+
+            // fix flickering
+            SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+            SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+            SetStyle(ControlStyles.UserPaint, true);            
+            
             // since the window is a child of the taskbar, its
             //background becomes transparent automatically             
-            BackColor = Color.Black;            
+            BackColor = Color.Black;
+
+            // when the taskbar position or size changes
+            // update this window's position/size accordingly
+            Taskbar.PositionOrSizeChanged += (s, e) => AttachToTaskbar();
         }
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            base.OnPaint(e);
-            ContentRenderer.Render(e.Graphics, new RendererParameters(Width, Height, isMouseOver, isMouseDown));
+            base.OnPaint(e);            
+            ContentRenderer?.Render(e.Graphics, new RendererParameters(Width, Height, isMouseOver, isMouseDown));
         }
 
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
 
+            // we do not want to interact with the taskbar at designtime
+            if (LicenseManager.UsageMode != LicenseUsageMode.Designtime)
+                AttachToTaskbar();
+        }
+
+        /// <summary>
+        /// Attach this window to the connected taskbar or update the positioning/sizing
+        /// after the taskbar size/position has changed
+        /// </summary>
+        void AttachToTaskbar()
+        {
             var taskbarRect = WindowUtils.GetWindowBounds(Taskbar.Handle);
 
-            // Set this window as child of the secondary taskbar's button bar            
-            var btnsHwnd = TaskbarUtils.GetSecondaryTaskButtonsHwnd(Taskbar.Handle);
+            // Set this window as child of the taskbar's button bar            
+            IntPtr btnsHwnd;
+
+            if (Taskbar.IsPrimary)
+                btnsHwnd = TaskbarUtils.GetPrimaryTaskButtonsHwnd(Taskbar.Handle);
+            else
+                btnsHwnd = TaskbarUtils.GetSecondaryTaskButtonsHwnd(Taskbar.Handle);
+
             NativeImports.SetWindowLong(Handle, NativeImports.GWL_STYLE, NativeImports.GetWindowLong(Handle, NativeImports.GWL_STYLE) | NativeImports.WS_CHILD);
             NativeImports.SetParent(Handle, btnsHwnd);
 
@@ -76,35 +113,22 @@ namespace SecondaryTaskbarClock.Views
             {
                 case TaskbarDockPosition.Top:
                 case TaskbarDockPosition.Bottom:
-                    TargetSize = new Size(TargetSize.Width, taskbarRect.Height);
+                    ActualSize = new Size(TargetSize.Width, taskbarRect.Height);
 
                     // place the clock at the far right                       
                     // we use SetWindowPos since setting Left and Top does not seem to work correctly
-                    NativeImports.SetWindowPos(Handle, IntPtr.Zero, taskBtnRect.Width - TargetSize.Width, 0, 0, 0, NativeImports.SetWindowPosFlags.SWP_NOSIZE);
+                    NativeImports.SetWindowPos(Handle, IntPtr.Zero, taskBtnRect.Width - TargetSize.Width, 0, ActualSize.Width, ActualSize.Height, 0);
                     break;
 
                 case TaskbarDockPosition.Left:
                 case TaskbarDockPosition.Right:
-                    TargetSize = new Size(taskbarRect.Width, TargetSize.Height);
+                    ActualSize = new Size(taskbarRect.Width, TargetSize.Height);
 
                     // place the clock at the bottom                                        
                     // we use SetWindowPos since setting Left and Top does not seem to work correctly
-                    NativeImports.SetWindowPos(Handle, IntPtr.Zero, 0, taskBtnRect.Height - TargetSize.Height, 0, 0, NativeImports.SetWindowPosFlags.SWP_NOSIZE);
+                    NativeImports.SetWindowPos(Handle, IntPtr.Zero, 0, taskBtnRect.Height - TargetSize.Height, ActualSize.Width, ActualSize.Height, 0);
                     break;
             }
-        }
-
-        protected override void OnShown(EventArgs e)
-        {
-            base.OnShown(e);
-
-            // resize the window to fit the taskbar            
-            var taskbarRect = WindowUtils.GetWindowBounds(Taskbar.Handle);
-
-            Width = TargetSize.Width;
-            Height = TargetSize.Height;
-
-            this.Invalidate();
         }
 
         protected override void OnMouseEnter(EventArgs e)

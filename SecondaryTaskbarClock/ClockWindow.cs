@@ -20,19 +20,23 @@ namespace SecondaryTaskbarClock
     {
         ClockViewModel ViewModel { get; set; }
         ToolTip toolTip;
+        private ContextMenuStrip popupMenu;
+        private System.ComponentModel.IContainer components;
+        private ToolStripMenuItem secondaryTaskbarClockToolStripMenuItem;
+        private ToolStripSeparator toolStripMenuItem1;
+        private ToolStripMenuItem mi_quit;
         bool tooltipShown = false;
-                
-        public ClockWindow(TaskbarInfo targetTaskbar, ClockViewModel viewModel)
+
+        public ClockWindow(TaskbarRef targetTaskbar, ClockViewModel viewModel)
             // currently we always use the Windows 10 renderer
             : base(targetTaskbar, new Win10TaskbarClockRenderer(viewModel))
         {
-            ViewModel = viewModel;
+            InitializeComponent();
+
+            ViewModel = viewModel;            
 
             // redraw the window, when the current time changes
-            ViewModel.PropertyChanged += (s, e) => Invalidate();
-            
-            // when clicked, open teh calendar flyout
-            MouseClick += ClockWindow_MouseClick;
+            ViewModel.PropertyChanged += (s, e) => Invalidate();                       
 
             // the tool tip which contains a long version of the day including Weekday
             toolTip = new ToolTip();
@@ -42,16 +46,47 @@ namespace SecondaryTaskbarClock
             // we have to show the tooltip manually for correct positioning
             MouseEnter += ClockWindow_MouseEnter;
             MouseLeave += ClockWindow_MouseLeave;            
+
+            // when clicked, open the calendar flyout
+            MouseClick += ClockWindow_MouseClick;
         }
 
         private void ClockWindow_MouseClick(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left)
+            switch(e.Button)
             {
-                Task.Run(() =>
-                {
-                    TaskbarUtils.ShowCalendarFlyOut(this.Bounds, Taskbar.DockPosition.GetCorrespondingFlyoutPosition());
-                });
+                case MouseButtons.Left:
+                    // show the calendar flyout next to this clock
+                    Task.Run(() =>
+                    {                        
+                        TaskbarUtils.ShowCalendarFlyOut(this.Bounds, Taskbar.DockPosition.GetCorrespondingFlyoutPosition());
+                    });
+                    break;
+                case MouseButtons.Right:
+                    {
+                        Point popupLocation;
+                        // open the context menu, correctly positioned
+                        // depending on the taskbar location
+                        switch (Taskbar.DockPosition)
+                        {                            
+                            case TaskbarDockPosition.Top:
+                                popupLocation = new Point(this.Bounds.Right - popupMenu.Width, this.Bounds.Bottom);
+                                break;
+                            case TaskbarDockPosition.Left:
+                                popupLocation = new Point(this.Bounds.Right, this.Bounds.Bottom - popupMenu.Height);
+                                break;
+                            case TaskbarDockPosition.Right:
+                                popupLocation = new Point(this.Bounds.Left - popupMenu.Width, this.Bounds.Bottom - popupMenu.Height);
+                                break;                            
+                            case TaskbarDockPosition.Bottom:
+                            default:
+                                popupLocation = new Point(this.Bounds.Right - popupMenu.Width, this.Bounds.Top - popupMenu.Height);
+                                break;
+                        }
+
+                        popupMenu.Show(popupLocation);
+                        break;
+                    }
             }
         }
 
@@ -60,6 +95,7 @@ namespace SecondaryTaskbarClock
             // we need the focus to show a tooltip
             this.Focus();
 
+            // only invoke the tooltip once
             if (!tooltipShown)
             {
                 tooltipShown = true;                
@@ -74,5 +110,57 @@ namespace SecondaryTaskbarClock
         {            
             tooltipShown = false;
         }
+
+        private void mi_quit_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void InitializeComponent()
+        {
+            this.components = new System.ComponentModel.Container();
+            this.popupMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.secondaryTaskbarClockToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            this.mi_quit = new System.Windows.Forms.ToolStripMenuItem();
+            this.popupMenu.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // popupMenu
+            // 
+            this.popupMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.secondaryTaskbarClockToolStripMenuItem,
+            this.toolStripMenuItem1,
+            this.mi_quit});
+            this.popupMenu.Name = "popupMenu";
+            this.popupMenu.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
+            this.popupMenu.Size = new System.Drawing.Size(200, 76);
+            // 
+            // secondaryTaskbarClockToolStripMenuItem
+            // 
+            this.secondaryTaskbarClockToolStripMenuItem.Name = "secondaryTaskbarClockToolStripMenuItem";
+            this.secondaryTaskbarClockToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.secondaryTaskbarClockToolStripMenuItem.Text = "SecondaryTaskbarClock";
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(196, 6);
+            // 
+            // mi_quit
+            // 
+            this.mi_quit.Name = "mi_quit";
+            this.mi_quit.Size = new System.Drawing.Size(199, 22);
+            this.mi_quit.Text = "Quit";
+            this.mi_quit.Click += new System.EventHandler(this.mi_quit_Click);
+            // 
+            // ClockWindow
+            // 
+            this.ClientSize = new System.Drawing.Size(284, 261);
+            this.Name = "ClockWindow";
+            this.popupMenu.ResumeLayout(false);
+            this.ResumeLayout(false);
+
+        }        
     }
 }
