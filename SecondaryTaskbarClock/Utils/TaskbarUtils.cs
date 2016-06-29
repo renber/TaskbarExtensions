@@ -142,7 +142,7 @@ namespace SecondaryTaskbarClock.Utils
         /// <summary>
         /// Return the handle of the taskbar's calendar flyout window
         /// </summary>
-        /// <param name="exceptHandles">Only a potenial flyout window with a handl enot in this set is returned</param>
+        /// <param name="exceptHandles">Only a potenial flyout window with a handle not in this set is returned</param>
         /// <returns></returns>
         private static IntPtr GetCalendarFlyoutHwnd(ISet<IntPtr> exceptHandles)
         {

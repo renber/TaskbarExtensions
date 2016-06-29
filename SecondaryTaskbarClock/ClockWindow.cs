@@ -44,7 +44,7 @@ namespace SecondaryTaskbarClock
             toolTip.UseFading = false;
 
             // we have to show the tooltip manually for correct positioning
-            MouseEnter += ClockWindow_MouseEnter;
+            MouseMove += ClockWindow_MouseMove;
             MouseLeave += ClockWindow_MouseLeave;            
 
             // when clicked, open the calendar flyout
@@ -90,14 +90,13 @@ namespace SecondaryTaskbarClock
             }
         }
 
-        private void ClockWindow_MouseEnter(object sender, EventArgs e)
-        {
-            // we need the focus to show a tooltip
-            this.Focus();
-
+        private void ClockWindow_MouseMove(object sender, MouseEventArgs e)
+        {            
             // only invoke the tooltip once
             if (!tooltipShown)
-            {
+            {// we need the focus to show a tooltip
+                this.Focus();
+
                 tooltipShown = true;                
                 // we have to use the Show() method of the tooltip, since otherwise
                 // it will always be positioned at the exact mouse position and not
@@ -105,6 +104,8 @@ namespace SecondaryTaskbarClock
                 toolTip.Show(ViewModel.CurrentDateTime.ToLongDateString(), this, 5000);
             }
         }
+
+        
 
         private void ClockWindow_MouseLeave(object sender, EventArgs e)
         {            
