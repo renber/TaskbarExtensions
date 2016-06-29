@@ -15,7 +15,7 @@ namespace SecondaryTaskbarClock.Renderers
     public class Win10TaskbarClockRenderer : IWindowContentRenderer
     {                      
         static Color BgHighlightColor = Color.FromArgb(25, Color.White);        
-        static Font font = new Font(new FontFamily("Segoe UI"), 8.5f, FontStyle.Regular, GraphicsUnit.Point);
+        static Font font = new Font(new FontFamily("Segoe UI"), 8.8f, FontStyle.Regular, GraphicsUnit.Point);
 
         ClockViewModel ViewModel { get; set; }
 

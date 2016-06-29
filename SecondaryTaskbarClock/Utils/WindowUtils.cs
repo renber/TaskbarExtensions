@@ -23,6 +23,26 @@ namespace SecondaryTaskbarClock.Utils
                 return new Rectangle(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
             else
                 throw new InvalidOperationException("Could not get window bounds.");
-        }        
+        }
+
+        /// <summary>
+        /// Returns the handles of all top-level windows of the given class
+        /// </summary>
+        /// <param name="className">The class name to search fore</param>        
+        public static ISet<IntPtr> ListWindowsWithClass(string className)
+        {
+            HashSet<IntPtr> resultHandles = new HashSet<IntPtr>();
+
+            IntPtr currChild = NativeImports.FindWindowEx(IntPtr.Zero, IntPtr.Zero, className, null);
+
+            while(currChild != IntPtr.Zero)
+            {
+                resultHandles.Add(currChild);
+                // next window (if any)
+                currChild = NativeImports.FindWindowEx(IntPtr.Zero, currChild, className, null);
+            }
+
+            return resultHandles;
+        }
     }
 }

@@ -21,6 +21,8 @@ namespace SecondaryTaskbarClock.Utils
         const string SecondaryButtonBarParentClassName = "workerw";
         const string SecondaryButtonBarClassName = "mstasklistwclass";
 
+        const string CalendarFlyoutClassName = "Windows.UI.Core.CoreWindow";
+
         /// <summary>
         /// Return all visible taskbars
         /// </summary>        
@@ -135,20 +137,56 @@ namespace SecondaryTaskbarClock.Utils
             // todo: error handling            
             IntPtr trayclockwclass = NativeImports.FindWindowEx(GetPrimaryTaskbarTrayHwnd(GetPrimaryTaskbarHwnd()), IntPtr.Zero, "trayclockwclass", null);
             return trayclockwclass;
-        }
+        }        
 
         /// <summary>
         /// Return the handle of the taskbar's calendar flyout window
         /// </summary>
+        /// <param name="exceptHandles">Only a potenial flyout window with a handl enot in this set is returned</param>
         /// <returns></returns>
-        public static IntPtr GetCalendarFlyoutHwnd()
+        private static IntPtr GetCalendarFlyoutHwnd(ISet<IntPtr> exceptHandles)
         {
-            // only works for german systems atm
+            // since the text of the calendar flyout is language-dependent and the
+            // class name is not unique, we search for a window of class
+            // Windows.UI.Core.CoreWindow which touches the primary taskbar's clock
+            // and is not contained in the passed set exceptHandles 
+            IntPtr taskbarClockHwnd = GetPrimaryTaskbarClockHwnd();
+            Rectangle taskbarClockRect = WindowUtils.GetWindowBounds(taskbarClockHwnd);
+
+            IntPtr candidateHwnd = NativeImports.FindWindowEx(IntPtr.Zero, IntPtr.Zero, CalendarFlyoutClassName, null);            
+            
+            while (candidateHwnd != IntPtr.Zero)
+            {
+                // is this window a potential candidate to be the calendar flyout?
+                if (!exceptHandles.Contains(candidateHwnd))
+                {                    
+                    // does the current window touch the primary taskbar's clock?                
+                    Rectangle candidateRect = WindowUtils.GetWindowBounds(candidateHwnd);
+                    candidateRect.Intersect(taskbarClockRect);
+
+                    // if the two rectangles touch, intersect results in a rectangle
+                    // where exactly one dimension is zero
+                    if ((candidateRect.Width == 0 && candidateRect.Height > 0) ||
+                        (candidateRect.Width > 0 && candidateRect.Height == 0))
+                    {
+                        // with a very high probability, this is the calendar flyout
+                        return candidateHwnd;
+                    }
+                }
+
+                // find the next window with the calendar class
+                candidateHwnd = NativeImports.FindWindowEx(IntPtr.Zero, candidateHwnd, CalendarFlyoutClassName, null);
+            }
+
+            return IntPtr.Zero;
+
+            /*
+            // if we have the localized window text, we may use the following
             const string flyoutClassname = "Windows.UI.Core.CoreWindow";
             const string flyoutText = "Datums- und Uhrzeitinformationen";
 
             IntPtr hwnd = NativeImports.FindWindowEx(IntPtr.Zero, IntPtr.Zero, flyoutClassname, flyoutText);
-            return hwnd;
+            return hwnd;*/
         }
 
         /// <summary>
@@ -188,7 +226,11 @@ namespace SecondaryTaskbarClock.Utils
         /// Show the primary taskbar's calendar flyout at the given location with the given alignment
         /// </summary>    
         public static void ShowCalendarFlyOut(Rectangle alignTo, FlyoutAlignment alignment)
-        {           
+        {
+            // get all window handles which have the same class as the
+            // flyout, so that we know these are not the flyout
+            var nonFlyoutHandles = WindowUtils.ListWindowsWithClass(CalendarFlyoutClassName);
+
             // invoke the primary taskbar's calendar flyout
             if (TaskbarUtils.InvokeCalendarFlyOut())
             {
@@ -196,13 +238,10 @@ namespace SecondaryTaskbarClock.Utils
                 IntPtr flyoutHwnd = IntPtr.Zero;
                 int start = Environment.TickCount;
                 while (flyoutHwnd == IntPtr.Zero && (Environment.TickCount - start <= 2000))
-                    flyoutHwnd = TaskbarUtils.GetCalendarFlyoutHwnd();
+                    flyoutHwnd = TaskbarUtils.GetCalendarFlyoutHwnd(nonFlyoutHandles);
 
                 if (flyoutHwnd != IntPtr.Zero)
-                {
-                    // give the flyout some time to initialize
-                    Thread.Sleep(150);
-
+                {                    
                     // and move it to this clock's location                   
                     NativeImports.RECT flyoutRect;
                     if (NativeImports.GetWindowRect(flyoutHwnd, out flyoutRect))
