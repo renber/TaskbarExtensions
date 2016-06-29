@@ -265,4 +265,17 @@ namespace SecondaryTaskbarClock.Utils
         ToTheRight,
         ToTheLeft
     }
+
+    public static class TaskbarDockPositionExtensions
+    {
+        /// <summary>
+        /// Return the position for the calendar flyout for the given taskbar dock position
+        /// </summary>
+        /// <param name="dockPosition"></param>
+        /// <returns></returns>
+        public static FlyoutAlignment GetCorrespondingFlyoutPosition(this TaskbarDockPosition dockPosition)
+        {
+            return (FlyoutAlignment)dockPosition;
+        }
+    }
 }

@@ -11,6 +11,13 @@ using System.Windows.Forms;
 
 namespace SecondaryTaskbarClock.Views
 {
+    // ------------
+    // TODO:
+    // Hook WM_WINDOWPOSCHANGED of the taskbar and
+    // reposition the window if necessary
+    // Hook WM_EXITSIZEMOVE to monitor size changes
+    // ------------
+
     /// <summary>
     /// A window which gets added to a taskbar as a component
     /// </summary>
@@ -20,7 +27,7 @@ namespace SecondaryTaskbarClock.Views
         protected IWindowContentRenderer ContentRenderer { get; private set; }
 
         Size TargetSize = new Size(80, 40);
-        bool isMouseOver = false;
+        bool isMouseOver = false;        
         bool isMouseDown = false;
 
         /// <summary>
@@ -36,6 +43,8 @@ namespace SecondaryTaskbarClock.Views
 
             Taskbar = targetTaskbar;
             ContentRenderer = contentRenderer;
+
+            SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 
             FormBorderStyle = FormBorderStyle.None;
             // since the window is a child of the taskbar, its

@@ -18,10 +18,8 @@ namespace SecondaryTaskbarClock
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            // TODO: create a clock window for each secondary taskbar
-
+            // create a clock window for each secondary taskbar
             var taskbars = TaskbarUtils.ListTaskbars().Where(x => !x.IsPrimary).ToList();
-
             if (taskbars.Count > 0)
             {
                 // add a clock to each secondary taskbar
