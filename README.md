@@ -8,6 +8,7 @@ Beginning with Windows 8 there is native support to show the taskbar on all conn
 - Content of the clock (time, date, day of week) depends on taskbar height and regional settings, just as with the native clock
 - Clicking a secondary taskbar's clock opens the default calendar flyout on the corresponding secondary display
 - Taskbar auto-hide feature is supported
+- Clock does not interfere with fullscreen applications
 - Long date format tooltip
 - When changing size/position of a secondary taskbar the corresponding clock reacts accordingly
 - No skin engine or custom theme needed
