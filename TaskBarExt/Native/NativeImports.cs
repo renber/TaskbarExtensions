@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SecondaryTaskbarClock.Native
+namespace TaskBarExt.Native
 {
     /// <summary>
     /// Helper class for native imports

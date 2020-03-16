@@ -1,5 +1,5 @@
-﻿using SecondaryTaskbarClock.Native;
-using SecondaryTaskbarClock.Utils;
+﻿using TaskBarExt.Native;
+using TaskBarExt.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

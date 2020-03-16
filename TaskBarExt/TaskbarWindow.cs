@@ -1,6 +1,7 @@
-﻿using SecondaryTaskbarClock.Native;
-using SecondaryTaskbarClock.Renderers;
-using SecondaryTaskbarClock.Utils;
+﻿using TaskBarExt.Components;
+using TaskBarExt.Native;
+using TaskBarExt.Renderers;
+using TaskBarExt.Utils;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,7 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace SecondaryTaskbarClock.Views
+namespace TaskBarExt
 {
     // ------------
     // TODO:
@@ -26,9 +27,9 @@ namespace SecondaryTaskbarClock.Views
     public class TaskbarWindow : Form
     {
         protected TaskbarRef Taskbar { get; private set; }
-        protected IWindowContentRenderer ContentRenderer { get; private set; }
+        protected ITaskbarComponent TaskbarComponent { get; private set; }
 
-        Size TargetSize = new Size(80, 40);
+        Size TargetSize = new Size();
         Size ActualSize = new Size();
 
         bool isMouseOver = false;        
@@ -37,7 +38,7 @@ namespace SecondaryTaskbarClock.Views
         /// <summary>
         /// Constructor for the Visual Studio Designer
         /// </summary>
-        public TaskbarWindow()
+        private TaskbarWindow()
         {
             // --
         }
@@ -46,15 +47,17 @@ namespace SecondaryTaskbarClock.Views
         /// Creates a new taskbar window and adds it to the given taskbar
         /// </summary>
         /// <param name="targetTaskbar">The taskbar to add this window to</param>
-        public TaskbarWindow(TaskbarRef targetTaskbar, IWindowContentRenderer contentRenderer)
+        public TaskbarWindow(TaskbarRef targetTaskbar, ITaskbarComponent component)
         {
             if (targetTaskbar == null)
                 throw new ArgumentNullException("targetTaskbar");
-            if (contentRenderer == null)
-                throw new ArgumentNullException("contentRenderer");
+            if (component == null)
+                throw new ArgumentNullException("component");
 
             Taskbar = targetTaskbar;
-            ContentRenderer = contentRenderer;
+            TaskbarComponent = component;
+
+            TargetSize = TaskbarComponent.PreferredSize;
 
             FormBorderStyle = FormBorderStyle.None;
 
@@ -70,12 +73,21 @@ namespace SecondaryTaskbarClock.Views
             // when the taskbar position or size changes
             // update this window's position/size accordingly
             Taskbar.PositionOrSizeChanged += (s, e) => AttachToTaskbar();
+
+            // wire up component events
+            component.RefreshRequested += (s, e) =>
+            {
+                if (this.InvokeRequired)
+                    this.Invoke(new Action(() => this.Refresh()));
+                else
+                    this.Refresh();
+            };            
         }
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            base.OnPaint(e);            
-            ContentRenderer?.Render(e.Graphics, new RendererParameters(Width, Height, isMouseOver, isMouseDown));
+            base.OnPaint(e);
+            TaskbarComponent?.Renderer?.Render(e.Graphics, new RendererParameters(Width, Height, isMouseOver, isMouseDown));
         }
 
         protected override void OnLoad(EventArgs e)
@@ -136,7 +148,9 @@ namespace SecondaryTaskbarClock.Views
             base.OnMouseEnter(e);
 
             isMouseOver = true;
-            this.Refresh();
+
+            if (TaskbarComponent.RefreshBehavior.HasFlag(RefreshBehavior.MouseEnter))
+                this.Refresh();
         }
 
         protected override void OnMouseLeave(EventArgs e)
@@ -144,7 +158,9 @@ namespace SecondaryTaskbarClock.Views
             base.OnMouseLeave(e);
 
             isMouseOver = false;
-            this.Refresh();
+
+            if (TaskbarComponent.RefreshBehavior.HasFlag(RefreshBehavior.MouseLeave))
+                this.Refresh();
         }
 
         protected override void OnMouseDown(MouseEventArgs e)
@@ -154,7 +170,9 @@ namespace SecondaryTaskbarClock.Views
             if (e.Button == MouseButtons.Left)
             {
                 isMouseDown = true;
-                this.Refresh();
+
+                if (TaskbarComponent.RefreshBehavior.HasFlag(RefreshBehavior.MouseDown))
+                    this.Refresh();
             }
         }
 
@@ -165,8 +183,18 @@ namespace SecondaryTaskbarClock.Views
             if (e.Button == MouseButtons.Left)
             {
                 isMouseDown = false;
-                this.Refresh();
+
+                if (TaskbarComponent.RefreshBehavior.HasFlag(RefreshBehavior.MouseUp))
+                    this.Refresh();
             }
+        }
+
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            base.OnMouseMove(e);
+
+            if (TaskbarComponent.RefreshBehavior.HasFlag(RefreshBehavior.MouseMove))
+                this.Refresh();
         }
     }
 }

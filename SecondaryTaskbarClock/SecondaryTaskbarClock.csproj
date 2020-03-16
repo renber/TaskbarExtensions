@@ -55,19 +55,12 @@
     <Compile Include="ClockWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Native\NativeImports.cs" />
-    <Compile Include="Native\WinEventHook.cs" />
+    <Compile Include="Components\ClockComponent.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Renderers\IWindowContentRenderer.cs" />
     <Compile Include="Renderers\Win10TaskbarClockRenderer.cs" />
-    <Compile Include="Utils\TaskbarUtils.cs" />
-    <Compile Include="Utils\WindowUtils.cs" />
     <Compile Include="ViewModels\ClockViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
-    <Compile Include="Views\TaskbarWindow.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <EmbeddedResource Include="ClockWindow.resx">
       <DependentUpon>ClockWindow.cs</DependentUpon>
     </EmbeddedResource>
@@ -80,9 +73,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="Views\TaskbarWindow.resx">
-      <DependentUpon>TaskbarWindow.cs</DependentUpon>
-    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -98,6 +88,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="appicon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TaskBarExt\TaskBarExt.csproj">
+      <Project>{dfdac8f6-5831-47a8-ba96-1e559522195c}</Project>
+      <Name>TaskBarExt</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

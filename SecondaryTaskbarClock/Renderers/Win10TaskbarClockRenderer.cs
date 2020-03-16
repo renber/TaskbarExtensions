@@ -6,18 +6,19 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TaskBarExt.Renderers;
 
 namespace SecondaryTaskbarClock.Renderers
 {
     /// <summary>
     /// Draws a clock which looks like the system tray clock of Windows 10
     /// </summary>
-    public class Win10TaskbarClockRenderer : IWindowContentRenderer
+    public class Win10TaskbarClockRenderer : ITaskbarComponentRenderer
     {                      
         static Color BgHighlightColor = Color.FromArgb(25, Color.White);        
         static Font font = new Font(new FontFamily("Segoe UI"), 8.8f, FontStyle.Regular, GraphicsUnit.Point);
 
-        ClockViewModel ViewModel { get; set; }
+        ClockViewModel ViewModel { get; set; }    
 
         public Win10TaskbarClockRenderer(ClockViewModel viewModel)
         {

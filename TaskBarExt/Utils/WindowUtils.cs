@@ -1,4 +1,4 @@
-﻿using SecondaryTaskbarClock.Native;
+﻿using TaskBarExt.Native;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SecondaryTaskbarClock.Utils
+namespace TaskBarExt.Utils
 {
     public static class WindowUtils
     {

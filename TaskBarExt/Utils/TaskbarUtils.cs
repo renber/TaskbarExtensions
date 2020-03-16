@@ -1,4 +1,4 @@
-﻿using SecondaryTaskbarClock.Native;
+﻿using TaskBarExt.Native;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace SecondaryTaskbarClock.Utils
+namespace TaskBarExt.Utils
 {
     public static class TaskbarUtils
     {

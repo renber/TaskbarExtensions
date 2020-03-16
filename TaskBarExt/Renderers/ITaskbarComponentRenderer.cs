@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SecondaryTaskbarClock.Renderers
+namespace TaskBarExt.Renderers
 {
-    public interface IWindowContentRenderer
+    public interface ITaskbarComponentRenderer
     {
         /// <summary>
         /// Render the window content to the given graphics object
@@ -15,7 +15,7 @@ namespace SecondaryTaskbarClock.Renderers
         /// <param name="g"></param>
         /// <param name="width"></param>
         /// <param name="height"></param>
-        void Render(Graphics g, RendererParameters parameters);
+        void Render(Graphics g, RendererParameters parameters);        
     }
 
     public class RendererParameters
@@ -24,6 +24,11 @@ namespace SecondaryTaskbarClock.Renderers
         /// Size of the window to render
         /// </summary>
         public Size WindowSize { get; private set; }
+
+        /// <summary>
+        /// The cursor position inside the component
+        /// </summary>
+        public Point CursorPosition { get; private set; }
 
         /// <summary>
         /// The cursor is inside the window

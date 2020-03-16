@@ -1,8 +1,7 @@
-﻿using SecondaryTaskbarClock.Native;
-using SecondaryTaskbarClock.Renderers;
-using SecondaryTaskbarClock.Utils;
+﻿using TaskBarExt.Native;
+using TaskBarExt.Renderers;
+using TaskBarExt.Utils;
 using SecondaryTaskbarClock.ViewModels;
-using SecondaryTaskbarClock.Views;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -13,6 +12,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Timers;
+using SecondaryTaskbarClock.Components;
+using TaskBarExt;
 
 namespace SecondaryTaskbarClock
 {
@@ -29,14 +30,11 @@ namespace SecondaryTaskbarClock
 
         public ClockWindow(TaskbarRef targetTaskbar, ClockViewModel viewModel)
             // currently we always use the Windows 10 renderer
-            : base(targetTaskbar, new Win10TaskbarClockRenderer(viewModel))
+            : base(targetTaskbar, new ClockComponent(viewModel))
         {
             InitializeComponent();
 
-            ViewModel = viewModel;            
-
-            // redraw the window, when the current time changes
-            ViewModel.PropertyChanged += (s, e) => Invalidate();                       
+            ViewModel = viewModel;                                
 
             // the tool tip which contains a long version of the day including Weekday
             toolTip = new ToolTip();
@@ -64,6 +62,10 @@ namespace SecondaryTaskbarClock
                     break;
                 case MouseButtons.Right:
                     {
+                        // force the popup menu to calculate its height
+                        popupMenu.SuspendLayout();
+                        popupMenu.ResumeLayout();                        
+
                         Point popupLocation;
                         // open the context menu, correctly positioned
                         // depending on the taskbar location
@@ -94,19 +96,18 @@ namespace SecondaryTaskbarClock
         {            
             // only invoke the tooltip once
             if (!tooltipShown)
-            {// we need the focus to show a tooltip
+            {
+                tooltipShown = true;
+                // we need the focus to show a tooltip
                 this.Focus();
-
-                tooltipShown = true;                
+                          
                 // we have to use the Show() method of the tooltip, since otherwise
                 // it will always be positioned at the exact mouse position and not
                 // next to the window
                 toolTip.Show(ViewModel.CurrentDateTime.ToLongDateString(), this, 5000);
             }
         }
-
         
-
         private void ClockWindow_MouseLeave(object sender, EventArgs e)
         {            
             tooltipShown = false;
@@ -135,7 +136,7 @@ namespace SecondaryTaskbarClock
             this.mi_quit});
             this.popupMenu.Name = "popupMenu";
             this.popupMenu.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.popupMenu.Size = new System.Drawing.Size(200, 76);
+            this.popupMenu.Size = new System.Drawing.Size(200, 54);
             // 
             // secondaryTaskbarClockToolStripMenuItem
             // 
