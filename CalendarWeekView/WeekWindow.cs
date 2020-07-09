@@ -17,9 +17,14 @@ namespace CalendarWeekView
     public partial class WeekWindow : TaskbarWindow
     {
         public WeekWindow(TaskbarRef targetTaskbar)
-            : base(targetTaskbar, new CalendarWeekComponent())
+            : base(targetTaskbar, TaskbarWindowPlacement.BetweenTrayAndClock, new CalendarWeekComponent())
         {
             InitializeComponent();
+        }
+
+        private void WeekWindow_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
         }
     }
 }

@@ -17,6 +17,12 @@ namespace TaskBarExt.Utils
         const string PrimaryTaskbarTrayClassName = "traynotifywnd";
         const string PrimaryButtonBarClassName = "rebarwindow32";
 
+        // tray area
+        const string PrimaryTrayNotifyWndClassName = "TrayNotifyWnd";
+        const string PrimaryTrayClockWndClassName = "TrayClockWClass";
+        const string PrimaryTrayNotificationCenterBtnClassName = "TrayButton";
+        const string PrimaryTrayShowDesktopBtnClassName = "TrayShowDesktopButtonWClass";
+
         const string SecondaryTaskbarClassName = "shell_secondarytraywnd";
         const string SecondaryButtonBarParentClassName = "workerw";
         const string SecondaryButtonBarClassName = "mstasklistwclass";
@@ -105,6 +111,24 @@ namespace TaskBarExt.Utils
         public static IntPtr GetPrimaryTaskButtonsHwnd(IntPtr taskbarHwnd)
         {            
             return NativeImports.FindWindowEx(taskbarHwnd, IntPtr.Zero, PrimaryButtonBarClassName, null);
+        }
+
+        public static IntPtr GetPrimaryTaskTrayNotifyHwnd(IntPtr taskbarHwnd)
+        {
+            return NativeImports.FindWindowEx(taskbarHwnd, IntPtr.Zero, PrimaryTrayNotifyWndClassName, null);
+        }
+
+        /// <summary>
+        /// Return all handles of taskbar elements to the right of the tray icons
+        /// </summary>        
+        public static IntPtr[] GetPrimaryTaskTrayElementsRightOfIcons(IntPtr taskbarHwnd)
+        {
+            var tnaWnd = GetPrimaryTaskTrayNotifyHwnd(taskbarHwnd);
+            if (tnaWnd == IntPtr.Zero)
+                return new IntPtr[0];
+            
+            string[] classnames = new string[] { PrimaryTrayClockWndClassName, PrimaryTrayNotificationCenterBtnClassName, PrimaryTrayShowDesktopBtnClassName };
+            return classnames.Select(cname => NativeImports.FindWindowEx(tnaWnd, IntPtr.Zero, cname, null)).Where(x => x != IntPtr.Zero).ToArray();
         }
 
         /// <summary>
@@ -283,11 +307,13 @@ namespace TaskBarExt.Utils
         public TaskbarDockPosition DockPosition { get; private set; }
         public IntPtr Handle { get; private set; }
         public Rectangle Bounds { get; private set; }
+        
+        public Dictionary<IntPtr, Rectangle> ObservedChildBoundChanges { get; } = new Dictionary<IntPtr, Rectangle>();
 
         /// <summary>
         /// Raised when the position or the size of this taskbar has changed
         /// </summary>
-        public event EventHandler PositionOrSizeChanged;
+        public event EventHandler<TaskbarChangedEventArgs> PositionOrSizeChanged;
         
         public TaskbarRef(bool isPrimary, IntPtr hwnd, Rectangle bounds, TaskbarDockPosition dockPosition)
         {
@@ -301,26 +327,52 @@ namespace TaskBarExt.Utils
         /// Raises the PositionOrSizeChanged event
         /// 
         /// </summary>
-        protected void RaisePositionOrSizeChanged()
+        protected void RaisePositionOrSizeChanged(IntPtr childHwnd)
         {            
-            PositionOrSizeChanged?.Invoke(this, EventArgs.Empty);            
+            PositionOrSizeChanged?.Invoke(this, new TaskbarChangedEventArgs(childHwnd));
+        }
+
+        public void RegisterObservableChild(IntPtr hwnd)
+        {
+            if (hwnd != IntPtr.Zero)
+            {
+                ObservedChildBoundChanges[hwnd] = WindowUtils.GetWindowBounds(hwnd);
+            }            
         }
 
         /// <summary>
         /// Reevaluates the DockPosition and Bounds
         /// and raises the PositionOrSizeChanged event if necessary
         /// </summary>
-        public void Update()
+        public void Update(IntPtr childHwnd)
         {
             var oldDockPosition = DockPosition;
-            var oldBounds = Bounds;
+            var oldBounds = Bounds;            
 
-            DockPosition = TaskbarUtils.GetTaskbarDockPosition(Handle);
-            Bounds = WindowUtils.GetWindowBounds(Handle);
+            if (childHwnd == IntPtr.Zero)
+            {
+                DockPosition = TaskbarUtils.GetTaskbarDockPosition(Handle);
+                Bounds = WindowUtils.GetWindowBounds(Handle);
 
-            if (oldDockPosition != DockPosition ||
-                oldBounds != Bounds)
-                RaisePositionOrSizeChanged();
+                // raised by the main taskbar, check if it was moved
+                if (oldDockPosition != DockPosition || oldBounds != Bounds)
+                {
+                    RaisePositionOrSizeChanged(IntPtr.Zero);
+                }
+            }
+            else
+            {
+                if (ObservedChildBoundChanges.TryGetValue(childHwnd, out Rectangle childRect))
+                {
+                    // check if the child bounds have really changed                    
+                    var screenRect = WindowUtils.GetWindowBounds(childHwnd);
+
+                    if (!screenRect.Equals(childRect))
+                    {
+                        RaisePositionOrSizeChanged(childHwnd);
+                    }                    
+                }                
+            }
         }
     }
 
@@ -357,6 +409,21 @@ namespace TaskBarExt.Utils
         public static FlyoutAlignment GetCorrespondingFlyoutPosition(this TaskbarDockPosition dockPosition)
         {
             return (FlyoutAlignment)dockPosition;
+        }
+    }
+
+    public class TaskbarChangedEventArgs : EventArgs
+    {
+        public bool IsChildEvent => ChildHwnd != IntPtr.Zero;
+
+        /// <summary>
+        /// If the event was raised by a child window, this specifies the window id
+        /// </summary>
+        public IntPtr ChildHwnd = IntPtr.Zero;
+
+        public TaskbarChangedEventArgs(IntPtr childHwnd)
+        {
+            ChildHwnd = childHwnd;
         }
     }
 }

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using TaskBarExt;
 using TaskBarExt.Native;
 using TaskBarExt.Utils;
 
@@ -11,6 +13,7 @@ namespace CalendarWeekView
     static class Program
     {
         static List<TaskbarRef> taskbars;
+        static List<TaskbarWindow> windows;
 
         /// <summary>
         /// Der Haupteinstiegspunkt für die Anwendung.
@@ -25,12 +28,14 @@ namespace CalendarWeekView
 
             if (taskbars.Count > 0)
             {
+                windows = new List<TaskbarWindow>();
                 // add a clock to each secondary taskbar
                 //var viewModel = new ViewModels.ClockViewModel();
                 foreach (var taskbar in taskbars)
                 {
                     var f = new WeekWindow(taskbar);
                     f.Show();
+                    windows.Add(f);
                 }
 
                 // install a win event hook to track taskbar resize/movement
@@ -39,6 +44,12 @@ namespace CalendarWeekView
                 Application.ApplicationExit += (s, e) =>
                 {
                     WinEventHook.RemoveHook(hook);
+
+                    foreach(var f in windows)
+                    {
+                        f.Close();
+                        f.RestoreTaskbar();
+                    }
                 };
 
                 Application.Run();
@@ -56,7 +67,12 @@ namespace CalendarWeekView
             }
 
             // if this event belongs to a taskbar, update its Bounds and DockPosition
-            taskbars.FirstOrDefault(x => x.Handle == hwnd)?.Update();
+            //taskbars.FirstOrDefault(x => )?.Update();
+
+            foreach (var taskbar in taskbars.Where(x => x.Handle == hwnd || x.ObservedChildBoundChanges.ContainsKey(hwnd)))
+            {
+                taskbar.Update(taskbar.Handle == hwnd ? IntPtr.Zero : hwnd);
+            }
         }
     }
 }

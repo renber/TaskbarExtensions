@@ -12,7 +12,7 @@ namespace CalendarWeekView.Components
 {    
     class CalendarWeekComponent : ITaskbarComponent
     {        
-        Size preferredSize = new Size(100, 40);
+        Size preferredSize = new Size(60, 40);
 
         public Size PreferredSize
         {

@@ -30,7 +30,7 @@ namespace SecondaryTaskbarClock
 
         public ClockWindow(TaskbarRef targetTaskbar, ClockViewModel viewModel)
             // currently we always use the Windows 10 renderer
-            : base(targetTaskbar, new ClockComponent(viewModel))
+            : base(targetTaskbar, TaskbarWindowPlacement.LeftOfTray, new ClockComponent(viewModel))
         {
             InitializeComponent();
 
