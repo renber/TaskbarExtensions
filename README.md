@@ -1,6 +1,6 @@
 # TaskbarExtensions
 
-This library began as tool for Windows 8 which allowed to display the clock on all taskbars, not only the primary one.
+This library began as a tool for Windows 8 which allowed to display the clock on all taskbars, not only the primary one.
 Now it provides a way to add arbitrary elements to the taskbar of Windows 10.
 
 ## Features
