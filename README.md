@@ -1,29 +1,38 @@
-# SecondaryTaskbarClock
+# TaskbarExtensions
 
-Beginning with Windows 8 there is native support to show the taskbar on all connected displays. Unfortunately, the secondary taskbars lack the system clock. This little tool adds the system clock to all secondary taskbars without the need for a skinning engine or custom Windows theme (e.g. Rainmeter).
+This library began as a tool for Windows 8 which allowed to display the clock on all taskbars, not only the primary one.
+Now it provides a way to add arbitrary elements to the taskbar of Windows 10.
 
 ## Features
 
-- Adds a clock to all secondary taskbars which looks like the default system clock
-- Content of the clock (time, date, day of week) depends on taskbar height and regional settings, just as with the native clock
-- Clicking a secondary taskbar's clock opens the default calendar flyout on the corresponding secondary display
+- Can add elements to all taskbars integrating with the default look and feel
 - Taskbar auto-hide feature is supported
-- Clock does not interfere with fullscreen applications
-- Long date format tooltip
-- When changing size/position of a secondary taskbar the corresponding clock reacts accordingly
+- Elements do not interfere with fullscreen applications
+- When changing size/position of a taskbar the custom corresponding elements react accordingly
 - No skin engine or custom theme needed
-- No setup needed
+- No setup needed, just launch
+- Can easily be integrated in existing applications
 
-## Notes
+## Sample applications
 
-Currently, the application has only been tested on Windows 10. It should work on Windows 8 but this has yet to be confirmed.
+### SecondaryTaskBarClock
+Somewhat obsolete, the feature to show the clock on all displays has been added by Microsoft.
+- Displayed content depends on taskbar height and regional settings, just as with the native clock
+- Clicking a secondary taskbar's clock opens the default calendar flyout on the corresponding secondary display
+- Long date format tooltip
+
+### CalendarWeekView
+Shows the current German CalendarWeek in the taskbar
+
+## Disclaimer
+
+Be aware, that this uses methods not officially supported by Microsoft (rearranging child windows of the taskbar itself etc.) and relies on implementation details of the windows taskbar which may change in the future. Thus, there certainly exist system configurations where these approaches (or at least the current implementation) do not work (e.g. right-to-left systems).
 
 ## Screenshots
 
 The system's default clock on the primary display (for reference) <br/>
 <a href="https://cloud.githubusercontent.com/assets/3481307/16447704/112f7932-3dee-11e6-8e8c-70b65d75b27a.png" target="_blank">
 <img src="https://cloud.githubusercontent.com/assets/3481307/16447704/112f7932-3dee-11e6-8e8c-70b65d75b27a.png" /> </a>
-
 
 A clock on a secondary taskbar <br/>
 <a href="https://cloud.githubusercontent.com/assets/3481307/16447703/112b1978-3dee-11e6-8c0c-1f9cdd54c048.png" target="_blank">
