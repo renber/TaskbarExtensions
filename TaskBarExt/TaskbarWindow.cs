@@ -27,8 +27,14 @@ namespace TaskBarExt
     public class TaskbarWindow : Form
     {
         protected TaskbarRef Taskbar { get; private set; }
-        protected ITaskbarComponent TaskbarComponent { get; private set; }
+        public ITaskbarComponent TaskbarComponent { get; private set; }
         protected TaskbarWindowPlacement Placement { get; private set; }
+
+        /// <summary>
+        /// Check if the window is still correctly attached to the task bar or needs reattachment
+        /// (e.g. sicne the taskbar has revalidated itself)
+        /// </summary>
+        bool IsCorrectlyAttached { get; } = false;
 
         Size TargetSize = new Size();
         Size ActualSize = new Size();
@@ -74,19 +80,29 @@ namespace TaskBarExt
 
             // when the taskbar position or size changes
             // update this window's position/size accordingly
-            Taskbar.PositionOrSizeChanged += (s, e) =>
-            {
-                AttachToTaskbar();
-            };
+            Taskbar.PositionOrSizeChanged += Taskbar_PositionOrSizeChanged;
 
             // wire up component events
-            component.RefreshRequested += (s, e) =>
+            component.RefreshRequested += Component_RefreshRequested;
+        }
+
+        private void Taskbar_PositionOrSizeChanged(object sender, TaskbarChangedEventArgs e)
+        {
+            if (!IsDisposed)
+            {
+                AttachToTaskbar();
+            }
+        }
+
+        private void Component_RefreshRequested(object sender, EventArgs e)
+        {
+            if (!IsDisposed)
             {
                 if (this.InvokeRequired)
                     this.Invoke(new Action(() => this.Refresh()));
                 else
                     this.Refresh();
-            };            
+            }
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -317,7 +333,8 @@ namespace TaskBarExt
         /// </summary>
         public virtual void RestoreTaskbar()
         {
-           // Todo
+            Taskbar.PositionOrSizeChanged -= Taskbar_PositionOrSizeChanged;
+            TaskbarComponent.RefreshRequested -= Component_RefreshRequested;
         }
     }
 }

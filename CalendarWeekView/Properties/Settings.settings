@@ -1,7 +1,22 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)">
-  <Profiles>
-    <Profile Name="(Default)" />
-  </Profiles>
-  <Settings />
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="CalendarWeekView.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="DisplayFont" Type="System.Drawing.Font" Scope="User">
+      <Value Profile="(Default)">Segoe UI Symbol, 9pt</Value>
+    </Setting>
+    <Setting Name="FontColor" Type="System.Drawing.Color" Scope="User">
+      <Value Profile="(Default)">White</Value>
+    </Setting>
+    <Setting Name="DisplayFormatString" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Week
+%week%</Value>
+    </Setting>
+    <Setting Name="Placement" Type="TaskBarExt.Utils.TaskbarWindowPlacement" Scope="User">
+      <Value Profile="(Default)">BetweenTrayAndClock</Value>
+    </Setting>
+    <Setting Name="CalendarWeekRule" Type="CalendarWeekView.Types.CalendarWeekCalculationRule" Scope="User">
+      <Value Profile="(Default)">ISO8601</Value>
+    </Setting>
+  </Settings>
 </SettingsFile>

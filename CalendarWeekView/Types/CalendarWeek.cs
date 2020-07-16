@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace CalendarWeekView.Types
 {
@@ -67,12 +69,23 @@ namespace CalendarWeekView.Types
             return Week;
         }
 
+        public static CalendarWeek GetCalendarWeek(DateTime date, CalendarWeekCalculationRule rule)
+        {
+            switch(rule)
+            {
+                case CalendarWeekCalculationRule.ISO8601: return GetISO8601CalendarWeek(date);
+                case CalendarWeekCalculationRule.US: return GetUSCalendarWeek(date);
+                default:
+                    throw new ArgumentException($"Unsupported CalendarWeekRule: {rule}");
+            }
+        }
+
         /// <summary>
         /// Berechnet die deutsche Kalenderwoche für das angegebene Datum
         /// </summary>
         /// <param name="date"></param>
         /// <returns></returns>
-        public static CalendarWeek GetGermanCalendarWeek(DateTime date)
+        private static CalendarWeek GetISO8601CalendarWeek(DateTime date)
         {
             double a = Math.Floor((14 - (date.Month)) / 12D);
             double y = date.Year + 4800 - a;
@@ -100,5 +113,21 @@ namespace CalendarWeekView.Types
             // Die ermittelte Kalenderwoche zurückgeben
             return new CalendarWeek(year, calendarWeek);
         }
+
+        private static CalendarWeek GetUSCalendarWeek(DateTime date)
+        {
+            CultureInfo usCulture = new CultureInfo("en-US");
+            Calendar usCal = usCulture.Calendar;
+            CalendarWeekRule cwr = usCulture.DateTimeFormat.CalendarWeekRule;
+            DayOfWeek dow = usCulture.DateTimeFormat.FirstDayOfWeek;
+
+            return new CalendarWeek(date.Year, usCal.GetWeekOfYear(DateTime.Now, cwr, dow));
+        }
+    }
+
+    public enum CalendarWeekCalculationRule
+    {
+        US,
+        ISO8601
     }
 }

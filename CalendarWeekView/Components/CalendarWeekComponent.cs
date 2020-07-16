@@ -1,4 +1,5 @@
 ﻿using CalendarWeekView.Renderers;
+using CalendarWeekView.Types;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -11,16 +12,12 @@ using TaskBarExt.Renderers;
 namespace CalendarWeekView.Components
 {    
     class CalendarWeekComponent : ITaskbarComponent
-    {        
+    {
+        AppSettings Settings { get; }
+
         Size preferredSize = new Size(60, 40);
 
-        public Size PreferredSize
-        {
-            get
-            {
-                return preferredSize;
-            }
-        }
+        public Size PreferredSize => preferredSize;
 
         public ITaskbarComponentRenderer Renderer { get; private set; }
 
@@ -34,9 +31,16 @@ namespace CalendarWeekView.Components
 
         public event EventHandler RefreshRequested;
 
-        public CalendarWeekComponent()
-        {            
-            Renderer = new Win10CalendarWeekRenderer();            
+        public CalendarWeekComponent(AppSettings settings)
+        {
+            Settings = settings;
+            UpdateRenderer();
+        }
+
+        public void UpdateRenderer()
+        {
+            Renderer = new Win10CalendarWeekRenderer(Settings.DisplayFont, Settings.FontColor, Settings.DisplayFormatString, CalendarWeekCalculationRule.ISO8601);
+            OnRefreshRequested();
         }
 
         protected void OnRefreshRequested()

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using CalendarWeekView.Services;
+using CalendarWeekView.Types;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -12,8 +14,8 @@ namespace CalendarWeekView
 {
     static class Program
     {
-        static List<TaskbarRef> taskbars;
-        static List<TaskbarWindow> windows;
+        // declare as field to keep the WinHook delegate in memory
+        static ITaskbarWindowService taskbarService;
 
         /// <summary>
         /// Der Haupteinstiegspunkt für die Anwendung.
@@ -23,32 +25,32 @@ namespace CalendarWeekView
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            // create a clock window for each secondary taskbar
-            taskbars = TaskbarUtils.ListTaskbars().ToList();
 
+            AppSettings settings = new AppSettings();
+            taskbarService = new DefaultTaskbarWindowService(settings);
+            IDialogService dialogService = new DialogService(settings, taskbarService);
+            (taskbarService as DefaultTaskbarWindowService).SetDialogService(dialogService);
+            
+            var taskbars = taskbarService.GetTaskBars();
             if (taskbars.Count > 0)
             {
-                windows = new List<TaskbarWindow>();
-                // add a clock to each secondary taskbar
-                //var viewModel = new ViewModels.ClockViewModel();
-                foreach (var taskbar in taskbars)
-                {
-                    var f = new WeekWindow(taskbar);
-                    f.Show();
-                    windows.Add(f);
-                }
+                taskbarService.RecreateAll();
 
                 // install a win event hook to track taskbar resize/movement
-                var hook = WinEventHook.SetHook(WinEventHook.EVENT_OBJECT_LOCATIONCHANGE, WinEventProc);
+                var winHook = WinEventHook.SetHook(WinEventHook.EVENT_OBJECT_LOCATIONCHANGE, WinEventProc);
 
                 Application.ApplicationExit += (s, e) =>
                 {
-                    WinEventHook.RemoveHook(hook);
-
-                    foreach(var f in windows)
+                    if (winHook != IntPtr.Zero)
                     {
-                        f.Close();
-                        f.RestoreTaskbar();
+                        WinEventHook.RemoveHook(winHook);
+                        winHook = IntPtr.Zero;
+
+                        foreach (var f in taskbarService.GetWindows())
+                        {
+                            f.Close();
+                            f.RestoreTaskbar();
+                        }
                     }
                 };
 
@@ -66,10 +68,8 @@ namespace CalendarWeekView
                 return;
             }
 
-            // if this event belongs to a taskbar, update its Bounds and DockPosition
-            //taskbars.FirstOrDefault(x => )?.Update();
-
-            foreach (var taskbar in taskbars.Where(x => x.Handle == hwnd || x.ObservedChildBoundChanges.ContainsKey(hwnd)))
+            // find the taskbar this event belongs to
+            foreach (var taskbar in taskbarService.GetTaskBars().Where(x => x.Handle == hwnd || x.ObservedChildBoundChanges.ContainsKey(hwnd)))
             {
                 taskbar.Update(taskbar.Handle == hwnd ? IntPtr.Zero : hwnd);
             }

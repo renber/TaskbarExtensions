@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TaskBarExt.Renderers;
+using TaskBarExt.Utils;
 
 namespace CalendarWeekView.Renderers
 {
@@ -15,11 +16,18 @@ namespace CalendarWeekView.Renderers
     public class Win10CalendarWeekRenderer : ITaskbarComponentRenderer
     {
         static Color BgHighlightColor = Color.FromArgb(25, Color.White);
-        static Font font = new Font(new FontFamily("Segoe UI Symbol"), 9f, FontStyle.Regular, GraphicsUnit.Point);
+        Font Font { get; }
+        Color FontColor { get; }
 
-        public Win10CalendarWeekRenderer()
+        string DisplayFormatString { get; }
+        CalendarWeekCalculationRule WeekRule { get; }
+
+        public Win10CalendarWeekRenderer(Font font, Color fontColor, String displayFormatString, CalendarWeekCalculationRule weekRule)
         {
-            // --
+            Font = font;
+            FontColor = fontColor;
+            DisplayFormatString = displayFormatString;
+            WeekRule = weekRule;
         }
 
         public void Render(Graphics g, RendererParameters parameters)
@@ -31,36 +39,20 @@ namespace CalendarWeekView.Renderers
             // allow text smoothing
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
-            var cWeek = CalendarWeek.GetGermanCalendarWeek(DateTime.Today);
+            var cWeek = CalendarWeek.GetCalendarWeek(DateTime.Today, WeekRule);            
 
-            // depending on the amount of space, we either print
-            // one, two or three lines            
-            String[] lineVariants = new string[]
-            {
-                // three lines
-                //$"Kalenderwoche\n{cWeek.Week:00}, {cWeek.Year}",                
-
-                // two lines
-                $"KW {cWeek.Week:00}\n{cWeek.Year}",                
-
-                // one line
-                $"KW {cWeek.Week:00}"
-            };
+            String text = DisplayFormatString.Replace("%week%", $"{cWeek.Week}").Replace("%year%", $"{cWeek.Year}");
 
             // select the largest variant for which there is enough space
-            StringFormat sf = new StringFormat();
-            sf.Alignment = StringAlignment.Center;
-            sf.LineAlignment = StringAlignment.Center;            
-
-            int variant = 0;
-            while (variant < lineVariants.Length - 1
-                  && g.MeasureString(lineVariants[variant], font, int.MaxValue, sf).Height > parameters.WindowSize.Height - 5)
+            using (StringFormat sf = new StringFormat())
+            using (var textBrush = new SolidBrush(FontColor))
             {
-                variant++;
-            }
+                sf.Alignment = StringAlignment.Center;
+                sf.LineAlignment = StringAlignment.Center;
 
-            Rectangle windowRect = new Rectangle(0, 0, parameters.WindowSize.Width, parameters.WindowSize.Height);
-            g.DrawString(lineVariants[variant], font, Brushes.White, windowRect, sf);
+                Rectangle windowRect = new Rectangle(0, 0, parameters.WindowSize.Width, parameters.WindowSize.Height);
+                g.DrawString(text, Font, textBrush, windowRect, sf);                
+            }
         }
     }
 }

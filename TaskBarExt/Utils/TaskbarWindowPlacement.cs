@@ -14,5 +14,5 @@ namespace TaskBarExt.Utils
         RightOfTaskButtons,
         BetweenTrayAndClock,
         EndOfTaskbar
-    }
+    }    
 }
