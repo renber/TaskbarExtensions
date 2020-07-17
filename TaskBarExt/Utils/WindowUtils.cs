@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace TaskBarExt.Utils
 {
@@ -23,6 +24,16 @@ namespace TaskBarExt.Utils
                 return new Rectangle(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
             else
                 throw new InvalidOperationException("Could not get window bounds.");
+        }
+
+        public static void SetCanRedraw(IntPtr handle, bool canRedraw)
+        {
+            NativeImports.SendMessage(handle, NativeImports.WM_SETREDRAW, canRedraw ? 1 : 0, IntPtr.Zero);
+
+            if (canRedraw)
+            {
+                NativeImports.RedrawWindow(handle, IntPtr.Zero, IntPtr.Zero, NativeImports.RedrawWindowFlags.Frame | NativeImports.RedrawWindowFlags.Invalidate | NativeImports.RedrawWindowFlags.AllChildren);
+            }
         }
 
         /// <summary>

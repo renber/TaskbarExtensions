@@ -15,7 +15,7 @@ namespace CalendarWeekView
     static class Program
     {
         // declare as field to keep the WinHook delegate in memory
-        static ITaskbarWindowService taskbarService;
+        static ITaskbarWindowService taskbarService;        
 
         /// <summary>
         /// Der Haupteinstiegspunkt für die Anwendung.
@@ -25,6 +25,8 @@ namespace CalendarWeekView
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+            Application.ThreadException += Application_ThreadException;
 
             AppSettings settings = new AppSettings();
             taskbarService = new DefaultTaskbarWindowService(settings);
@@ -34,45 +36,17 @@ namespace CalendarWeekView
             var taskbars = taskbarService.GetTaskBars();
             if (taskbars.Count > 0)
             {
-                taskbarService.RecreateAll();
-
-                // install a win event hook to track taskbar resize/movement
-                var winHook = WinEventHook.SetHook(WinEventHook.EVENT_OBJECT_LOCATIONCHANGE, WinEventProc);
-
-                Application.ApplicationExit += (s, e) =>
-                {
-                    if (winHook != IntPtr.Zero)
-                    {
-                        WinEventHook.RemoveHook(winHook);
-                        winHook = IntPtr.Zero;
-
-                        foreach (var f in taskbarService.GetWindows())
-                        {
-                            f.Close();
-                            f.RestoreTaskbar();
-                        }
-                    }
-                };
+                taskbarService.RecreateAll();                
 
                 Application.Run();
             }
             else
-                MessageBox.Show("CalendarWeekView", "No taskbars found. Application will terminate.");
+                MessageBox.Show("No taskbars found. Application will terminate.", "CalendarWeekView", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        static void WinEventProc(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
+        private static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
         {
-            // filter out non-HWND namechanges
-            if (idObject != 0 || idChild != 0)
-            {
-                return;
-            }
-
-            // find the taskbar this event belongs to
-            foreach (var taskbar in taskbarService.GetTaskBars().Where(x => x.Handle == hwnd || x.ObservedChildBoundChanges.ContainsKey(hwnd)))
-            {
-                taskbar.Update(taskbar.Handle == hwnd ? IntPtr.Zero : hwnd);
-            }
-        }
+            MessageBox.Show("An exception occured: " + e.Exception.Message, "CalendarWeekView", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }        
     }
 }

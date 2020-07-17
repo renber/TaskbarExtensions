@@ -14,6 +14,8 @@ namespace CalendarWeekView.Services
 {
     class DefaultTaskbarWindowService : ITaskbarWindowService
     {
+        static ITaskbarWindowService _hookInstance;
+
         AppSettings Settings { get; }
         IDialogService DialogService { get; set; }
 
@@ -22,10 +24,33 @@ namespace CalendarWeekView.Services
 
         TaskbarWindowPlacement ActivePlacement;
 
+        static WinEventHook.WinEventDelegate hookDelegate;
+
         public DefaultTaskbarWindowService(AppSettings settings)
         {
+            _hookInstance = this;
+
             Settings = settings;
             ActivePlacement = settings.Placement;            
+
+            // install a win event hook to track taskbar resize/movement
+            hookDelegate = new WinEventHook.WinEventDelegate(WinEventProc);
+            var winHook = WinEventHook.SetHook(WinEventHook.EVENT_OBJECT_LOCATIONCHANGE, hookDelegate);
+
+            Application.ApplicationExit += (s, e) =>
+                    {
+                        if (winHook != IntPtr.Zero)
+                        {
+                            WinEventHook.RemoveHook(winHook);
+                            winHook = IntPtr.Zero;
+
+                            foreach (var f in GetWindows())
+                            {
+                                f.Close();
+                                f.RestoreTaskbar();
+                            }
+                        }
+                    };
         }
 
         public void SetDialogService(IDialogService dialogService)
@@ -96,6 +121,21 @@ namespace CalendarWeekView.Services
 
                 Register(f);
             }
-        }        
+        }
+
+        static void WinEventProc(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
+        {
+            // filter out non-HWND namechanges
+            if (idObject != 0 || idChild != 0)
+            {
+                return;
+            }
+
+            // find the taskbar this event belongs to
+            foreach (var taskbar in _hookInstance.GetTaskBars().Where(x => x.Handle == hwnd || x.ObservedChildBoundChanges.ContainsKey(hwnd)))
+            {
+                taskbar.Update(taskbar.Handle == hwnd ? IntPtr.Zero : hwnd);
+            }
+        }
     }
 }

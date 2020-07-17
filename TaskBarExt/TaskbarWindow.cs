@@ -30,6 +30,8 @@ namespace TaskBarExt
         public ITaskbarComponent TaskbarComponent { get; private set; }
         protected TaskbarWindowPlacement Placement { get; private set; }
 
+        protected bool IsAttaching { get; set; } = false;
+
         /// <summary>
         /// Check if the window is still correctly attached to the task bar or needs reattachment
         /// (e.g. sicne the taskbar has revalidated itself)
@@ -213,7 +215,7 @@ namespace TaskBarExt
 
                 // listen for size changes of the tray area
                 Taskbar.RegisterObservableChild(trayHwnd);
-            }            
+            }
         }
 
         void Place_EndOfTaskbar(Rectangle taskbarRect)
@@ -258,20 +260,31 @@ namespace TaskBarExt
         /// </summary>
         void AttachToTaskbar()
         {
-            var taskbarRect = WindowUtils.GetWindowBounds(Taskbar.Handle);
+            if (IsAttaching) return;
 
-            switch (Placement)
+            try
             {
-                case TaskbarWindowPlacement.RightOfTaskButtons:
-                    Place_RightOfTaskButtons(taskbarRect);
-                    break;
-                case TaskbarWindowPlacement.BetweenTrayAndClock:
-                    Place_BetweenTrayAndClock(taskbarRect);
-                    break;
-                case TaskbarWindowPlacement.EndOfTaskbar:
-                    Place_EndOfTaskbar(taskbarRect);
-                    break;
-            }            
+                IsAttaching = true;
+
+                var taskbarRect = WindowUtils.GetWindowBounds(Taskbar.Handle);                
+
+                switch (Placement)
+                {
+                    case TaskbarWindowPlacement.RightOfTaskButtons:
+                        Place_RightOfTaskButtons(taskbarRect);
+                        break;
+                    case TaskbarWindowPlacement.BetweenTrayAndClock:
+                        Place_BetweenTrayAndClock(taskbarRect);
+                        break;
+                    case TaskbarWindowPlacement.EndOfTaskbar:
+                        Place_EndOfTaskbar(taskbarRect);
+                        break;
+                }
+            }
+            finally
+            {
+                IsAttaching = false;
+            }
         }
 
         protected override void OnMouseEnter(EventArgs e)
