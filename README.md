@@ -15,20 +15,16 @@ Now it provides a way to add arbitrary elements to the taskbar of Windows 10.
 
 ## Sample applications
 
+### CalendarWeekView
+Shows the current week of the year in the taskbar. Placement location, display text, font and calendar week calculation rule (ISO8601, US) can be customized.
+
+![Screenshot of calendar week display in taskbar](doc/screenshot_calendarweekview.png)
+
 ### SecondaryTaskBarClock
 Somewhat obsolete, the feature to show the clock on all displays has been added by Microsoft.
 - Displayed content depends on taskbar height and regional settings, just as with the native clock
 - Clicking a secondary taskbar's clock opens the default calendar flyout on the corresponding secondary display
 - Long date format tooltip
-
-### CalendarWeekView
-Shows the current German CalendarWeek in the taskbar
-
-## Disclaimer
-
-Be aware, that this uses methods not officially supported by Microsoft (rearranging child windows of the taskbar itself etc.) and relies on implementation details of the windows taskbar which may change in the future. Thus, there certainly exist system configurations where these approaches (or at least the current implementation) do not work (e.g. right-to-left systems).
-
-## Screenshots
 
 The system's default clock on the primary display (for reference) <br/>
 <a href="https://cloud.githubusercontent.com/assets/3481307/16447704/112f7932-3dee-11e6-8e8c-70b65d75b27a.png" target="_blank">
@@ -41,3 +37,7 @@ A clock on a secondary taskbar <br/>
 Secondary clock with calendar flyout <br/>
 <a href="https://cloud.githubusercontent.com/assets/3481307/16447705/11427794-3dee-11e6-8a83-727006e42d1f.png" target="_blank">
 <img src="https://cloud.githubusercontent.com/assets/3481307/16447705/11427794-3dee-11e6-8a83-727006e42d1f.png" /> </a>
+
+## Disclaimer
+
+Be aware, that this uses methods not officially supported by Microsoft (rearranging child windows of the taskbar itself etc.) and relies on implementation details of the windows taskbar which may change in the future. Thus, there certainly exist system configurations where these approaches (or at least the current implementation) do not work (e.g. right-to-left systems).
