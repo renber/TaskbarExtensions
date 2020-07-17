@@ -16,7 +16,7 @@ Now it provides a way to add arbitrary elements to the taskbar of Windows 10.
 ## Sample applications
 
 ### CalendarWeekView
-Shows the current week of the year in the taskbar. Placement location, display text, font and calendar week calculation rule (ISO8106, US) can be customized.
+Shows the current week of the year in the taskbar. Placement location, display text, font and calendar week calculation rule (ISO8601, US) can be customized.
 
 ![Screenshot of calendar week display in taskbar](doc/screenshot_calendarweekview.png)
 
