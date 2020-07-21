@@ -50,8 +50,10 @@
     <Compile Include="Renderers\Win10CalendarWeekRenderer.cs" />
     <Compile Include="Services\DefaultTaskbarWindowService.cs" />
     <Compile Include="Services\DialogService.cs" />
+    <Compile Include="Services\IAppSettings.cs" />
     <Compile Include="Services\IDialogService.cs" />
     <Compile Include="Services\ITaskbarWindowService.cs" />
+    <Compile Include="Services\ShellLink.cs" />
     <Compile Include="Types\ReadableEnumDisplayTexts.cs" />
     <Compile Include="Types\AppSettings.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />

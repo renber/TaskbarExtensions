@@ -12,13 +12,13 @@ namespace CalendarWeekView.Services
 {
     class DialogService : IDialogService
     {
-        protected AppSettings Settings { get; }
+        protected IAppSettings Settings { get; }
 
         protected ITaskbarWindowService TaskbarWindowService { get; }
 
         protected SettingsWindow OpenedSettingsWindow { get; set; }
 
-        public DialogService(AppSettings settings, ITaskbarWindowService taskbarWindowService)
+        public DialogService(IAppSettings settings, ITaskbarWindowService taskbarWindowService)
         {
             Settings = settings;
             TaskbarWindowService = taskbarWindowService;
@@ -30,7 +30,7 @@ namespace CalendarWeekView.Services
             {
                 OpenedSettingsWindow = new SettingsWindow(new ViewModels.SettingsViewModel(Settings, TaskbarWindowService, this));
                 OpenedSettingsWindow.FormClosed += OpenedSettingsWindow_FormClosed;
-                OpenedSettingsWindow.ShowDialog();
+                OpenedSettingsWindow.Show();
             } else
             {
                 OpenedSettingsWindow.BringToFront();

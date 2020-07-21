@@ -28,7 +28,7 @@ namespace CalendarWeekView
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
             Application.ThreadException += Application_ThreadException;
 
-            AppSettings settings = new AppSettings();
+            IAppSettings settings = new AppSettings();
             taskbarService = new DefaultTaskbarWindowService(settings);
             IDialogService dialogService = new DialogService(settings, taskbarService);
             (taskbarService as DefaultTaskbarWindowService).SetDialogService(dialogService);

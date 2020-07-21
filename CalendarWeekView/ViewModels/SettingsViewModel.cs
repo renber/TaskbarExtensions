@@ -18,7 +18,7 @@ namespace CalendarWeekView.ViewModels
     {
         IDialogService DialogService { get; }
         ITaskbarWindowService TaskbarService { get; }
-        AppSettings Settings { get; }
+        IAppSettings Settings { get; }
         public IList<SingleValueViewModel<TaskbarWindowPlacement>> AvailablePlacements { get; } = new List<SingleValueViewModel<TaskbarWindowPlacement>>();
 
         SingleValueViewModel<TaskbarWindowPlacement> selectedPlacement;
@@ -50,13 +50,16 @@ namespace CalendarWeekView.ViewModels
         string displayFormatString = "KW %week%";
         public string DisplayFormatString { get => displayFormatString; set => SetProperty(ref displayFormatString, value); }
 
+        bool autostart = false;
+        public bool Autostart { get => autostart; set => SetProperty(ref autostart, value); }
+
         public Action ApplyCommand { get; private set; }
         public Action OkCommand { get; private set; }
         public Action ChangeFontCommand { get; private set; }
 
         public Action CancelCommand { get; private set; }
 
-        public SettingsViewModel(AppSettings targetSettings, ITaskbarWindowService taskbarWindowService, IDialogService dialogService)
+        public SettingsViewModel(IAppSettings targetSettings, ITaskbarWindowService taskbarWindowService, IDialogService dialogService)
         {
             Settings = targetSettings;
             TaskbarService = taskbarWindowService;
@@ -78,22 +81,27 @@ namespace CalendarWeekView.ViewModels
 
         private void ReadSettings()
         {
+            SelectedPlacement = AvailablePlacements.FirstOrDefault(x => x.Value == Settings.Placement);
+            Autostart = Settings.Autostart;
+
             DisplayFont = (Font)Settings.DisplayFont.Clone();
             DisplayFontColor = Settings.FontColor;
             DisplayFormatString = Settings.DisplayFormatString;
-
-            SelectedPlacement = AvailablePlacements.FirstOrDefault(x => x.Value == Settings.Placement);
+            
             SelectedWeekRule = AvailableWeekRules.FirstOrDefault(x => x.Value == Settings.CalendarWeekRule);
         }
 
         private void WriteSettings()
-        {            
+        {
+            Settings.Placement = SelectedPlacement?.Value ?? TaskbarWindowPlacement.BetweenTrayAndClock;
+            Settings.Autostart = Autostart;
+
             Settings.DisplayFont = DisplayFont;
             Settings.FontColor = DisplayFontColor;
             Settings.DisplayFormatString = DisplayFormatString;
-
-            Settings.Placement = SelectedPlacement?.Value ?? TaskbarWindowPlacement.BetweenTrayAndClock;
+            
             Settings.CalendarWeekRule = SelectedWeekRule?.Value ?? CalendarWeekCalculationRule.ISO8601;
+
             Settings.Save();
         }
 

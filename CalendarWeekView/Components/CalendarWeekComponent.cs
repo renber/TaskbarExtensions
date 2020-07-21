@@ -1,4 +1,5 @@
 ﻿using CalendarWeekView.Renderers;
+using CalendarWeekView.Services;
 using CalendarWeekView.Types;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace CalendarWeekView.Components
 {    
     class CalendarWeekComponent : ITaskbarComponent
     {
-        AppSettings Settings { get; }
+        IAppSettings Settings { get; }
 
         Size preferredSize = new Size(60, 40);
 
@@ -31,7 +32,7 @@ namespace CalendarWeekView.Components
 
         public event EventHandler RefreshRequested;
 
-        public CalendarWeekComponent(AppSettings settings)
+        public CalendarWeekComponent(IAppSettings settings)
         {
             Settings = settings;
             UpdateRenderer();

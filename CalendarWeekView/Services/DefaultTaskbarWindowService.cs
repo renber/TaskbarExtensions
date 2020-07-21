@@ -16,7 +16,7 @@ namespace CalendarWeekView.Services
     {
         static ITaskbarWindowService _hookInstance;
 
-        AppSettings Settings { get; }
+        IAppSettings Settings { get; }
         IDialogService DialogService { get; set; }
 
         static List<TaskbarRef> taskbars;
@@ -26,7 +26,7 @@ namespace CalendarWeekView.Services
 
         static WinEventHook.WinEventDelegate hookDelegate;
 
-        public DefaultTaskbarWindowService(AppSettings settings)
+        public DefaultTaskbarWindowService(IAppSettings settings)
         {
             _hookInstance = this;
 

@@ -31,6 +31,8 @@ namespace CalendarWeekView.Windows
             comboPlacement.DataSource = new BindingSource(DataContext, "AvailablePlacements");
             comboPlacement.DataBindings.Add("SelectedItem", DataContext, "SelectedPlacement");
             
+            cbAutostart.DataBindings.Add("Checked", DataContext, "Autostart");
+
             comboWeekRule.DataSource = new BindingSource(DataContext, "AvailableWeekRules");
             comboWeekRule.DataBindings.Add("SelectedItem", DataContext, "SelectedWeekRule");
 

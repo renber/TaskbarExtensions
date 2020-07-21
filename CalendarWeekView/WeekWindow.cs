@@ -21,7 +21,7 @@ namespace CalendarWeekView
     {
         IDialogService DialogService { get; }
 
-        public WeekWindow(TaskbarRef targetTaskbar, AppSettings settings, IDialogService dialogService)
+        public WeekWindow(TaskbarRef targetTaskbar, IAppSettings settings, IDialogService dialogService)
             : base(targetTaskbar, settings.Placement, new CalendarWeekComponent(settings))
         {
             DialogService = dialogService;

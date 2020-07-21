@@ -39,6 +39,8 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.comboWeekRule = new System.Windows.Forms.ComboBox();
+            this.label7 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.txtDisplayFormat = new System.Windows.Forms.TextBox();
             this.panelFontColor = new System.Windows.Forms.Panel();
@@ -48,8 +50,7 @@
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.btnApply = new System.Windows.Forms.Button();
-            this.label7 = new System.Windows.Forms.Label();
-            this.comboWeekRule = new System.Windows.Forms.ComboBox();
+            this.cbAutostart = new System.Windows.Forms.CheckBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -91,6 +92,7 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.cbAutostart);
             this.tabPage1.Controls.Add(this.comboPlacement);
             this.tabPage1.Controls.Add(this.groupBox2);
             this.tabPage1.Controls.Add(this.label1);
@@ -122,9 +124,9 @@
             this.groupBox2.Controls.Add(this.cbShowInTaskbars);
             this.groupBox2.Controls.Add(this.label2);
             this.groupBox2.Enabled = false;
-            this.groupBox2.Location = new System.Drawing.Point(9, 33);
+            this.groupBox2.Location = new System.Drawing.Point(9, 70);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(433, 273);
+            this.groupBox2.Size = new System.Drawing.Size(433, 236);
             this.groupBox2.TabIndex = 5;
             this.groupBox2.TabStop = false;
             // 
@@ -136,7 +138,7 @@
             this.listboxDisplays.FormattingEnabled = true;
             this.listboxDisplays.Location = new System.Drawing.Point(10, 49);
             this.listboxDisplays.Name = "listboxDisplays";
-            this.listboxDisplays.Size = new System.Drawing.Size(418, 214);
+            this.listboxDisplays.Size = new System.Drawing.Size(418, 169);
             this.listboxDisplays.TabIndex = 3;
             // 
             // cbShowInTaskbars
@@ -190,6 +192,24 @@
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Appearance";
             this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // comboWeekRule
+            // 
+            this.comboWeekRule.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboWeekRule.FormattingEnabled = true;
+            this.comboWeekRule.Location = new System.Drawing.Point(131, 9);
+            this.comboWeekRule.Name = "comboWeekRule";
+            this.comboWeekRule.Size = new System.Drawing.Size(313, 21);
+            this.comboWeekRule.TabIndex = 12;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(12, 12);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(113, 13);
+            this.label7.TabIndex = 11;
+            this.label7.Text = "Week calculation rule:";
             // 
             // label6
             // 
@@ -274,23 +294,15 @@
             this.btnApply.Text = "Apply";
             this.btnApply.UseVisualStyleBackColor = true;
             // 
-            // label7
+            // cbAutostart
             // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(12, 12);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(113, 13);
-            this.label7.TabIndex = 11;
-            this.label7.Text = "Week calculation rule:";
-            // 
-            // comboWeekRule
-            // 
-            this.comboWeekRule.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboWeekRule.FormattingEnabled = true;
-            this.comboWeekRule.Location = new System.Drawing.Point(131, 9);
-            this.comboWeekRule.Name = "comboWeekRule";
-            this.comboWeekRule.Size = new System.Drawing.Size(313, 21);
-            this.comboWeekRule.TabIndex = 12;
+            this.cbAutostart.AutoSize = true;
+            this.cbAutostart.Location = new System.Drawing.Point(9, 32);
+            this.cbAutostart.Name = "cbAutostart";
+            this.cbAutostart.Size = new System.Drawing.Size(180, 17);
+            this.cbAutostart.TabIndex = 7;
+            this.cbAutostart.Text = "Automatically start with Windows";
+            this.cbAutostart.UseVisualStyleBackColor = true;
             // 
             // SettingsWindow
             // 
@@ -339,5 +351,6 @@
         private System.Windows.Forms.Button btnApply;
         private System.Windows.Forms.ComboBox comboWeekRule;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.CheckBox cbAutostart;
     }
 }
