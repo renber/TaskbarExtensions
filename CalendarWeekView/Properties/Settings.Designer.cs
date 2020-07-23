@@ -25,7 +25,7 @@ namespace CalendarWeekView.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Segoe UI Symbol, 9pt")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Segoe UI, 9pt")]
         public global::System.Drawing.Font DisplayFont {
             get {
                 return ((global::System.Drawing.Font)(this["DisplayFont"]));
